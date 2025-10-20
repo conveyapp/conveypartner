@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "Convey Partner",
+    "scheme": "converypartner",
+    "slug": "conveypartner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.convey.partner",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDlHFdTZRqLcvawHvkmbMydPea3pc1dOdU"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Esta aplicación necesita acceder a tu ubicación para mostrar el mapa.",
+        "NSLocationAlwaysUsageDescription": "Esta aplicación necesita acceder a tu ubicación de forma continua para mostrar tu ubicación en tiempo real.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "package": "com.partner.convey",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCiqqMW-jjvZYPXXB_3lFxJsDH9dJJzwqs"
+        }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-font"
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d7cf4424-64b8-4eb2-a6d7-eea9cd0226cb"
+      }
+    }
+  }
+}
