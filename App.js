@@ -644,8 +644,8 @@ export default function App({ navigation }) {
       }
 
       if (nextAppState === 'background') {
-        // La app ha pasado a segundo plano, desconectamos el socket
-        disconnectSocket();
+        // Mantener conexión en background para tracking
+        // no desconectar
       }
 
       setAppState(nextAppState);
@@ -655,7 +655,7 @@ export default function App({ navigation }) {
 
     return () => {
       subscription.remove();
-      disconnectSocket(); // Limpiar la conexión si el componente se desmonta
+      // no desconectar en unmount para mantener conexión si hay tareas
     };
   }, [appState]);
 
@@ -664,8 +664,7 @@ export default function App({ navigation }) {
     initiateSocketConnection();
 
     return () => {
-      // Desconectar el socket cuando la app se desmonte
-      disconnectSocket();
+      // mantener conexión
     };
   }, []);
   return (

@@ -6,8 +6,14 @@ let socket;
 
 export const initiateSocketConnection = async () => {
     const userToken = await AsyncStorage.getItem('Key_27');
-    socket = io(`https://socketconvey-b6f8fc94e39d.herokuapp.com/`, { reconnection: false });
-    socket.emit("usuario", userToken);
+    socket = io(`https://socketconvey.onrender.com/`, {
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+    });
+    socket.on('connect', () => {
+        socket.emit("usuario", userToken);
+    });
 };
 
 export const getSocket = () => {
@@ -15,5 +21,5 @@ export const getSocket = () => {
 };
 
 export const disconnectSocket = () => {
-    if(socket) socket.disconnect();
+    if (socket) socket.disconnect();
 };

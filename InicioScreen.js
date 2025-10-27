@@ -106,6 +106,104 @@ const InicioScreen = ({ navigation, route }) => {
     });
   }, []);
 
+  // TRACKING UBICACION - FOREGROUND (emite por socket cuando está disponible)
+  const locationWatchRef = React.useRef(null);
+  const locationIntervalRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    async function startWatch() {
+      try {
+        if (!isEnabled) {
+          if (locationWatchRef.current) {
+            locationWatchRef.current.remove();
+            locationWatchRef.current = null;
+          }
+          return;
+        }
+
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+
+        const userToken = await AsyncStorage.getItem('Key_27');
+        const sock = getSocket();
+
+        // Enviar una lectura inmediata al iniciar el tracking
+        try {
+          const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          if (current && current.coords) {
+            console.log('Emitiendo PartnerLocationSend (inicial)', current.coords.latitude, current.coords.longitude);
+            sock && sock.emit('PartnerLocationSend', {
+              partnerId: userToken,
+              lat: current.coords.latitude,
+              lng: current.coords.longitude,
+              ts: Date.now(),
+            });
+          }
+        } catch (e) { }
+
+        // Intervalo de respaldo cada 5s
+        if (locationIntervalRef.current) {
+          clearInterval(locationIntervalRef.current);
+        }
+        locationIntervalRef.current = setInterval(async () => {
+          try {
+            const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            const { latitude, longitude } = (pos && pos.coords) || {};
+            if (latitude && longitude) {
+              console.log('Emitiendo PartnerLocationSend (interval)', latitude, longitude);
+              sock && sock.emit('PartnerLocationSend', {
+                partnerId: userToken,
+                lat: latitude,
+                lng: longitude,
+                ts: Date.now(),
+              });
+            }
+          } catch (e) { }
+        }, 5000);
+
+        locationWatchRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 5000, // enviar cada ~5s
+            distanceInterval: 0, // sin filtro de distancia para pruebas
+          },
+          (pos) => {
+            if (!isMounted) return;
+            if (!sock) return;
+            const { latitude, longitude } = (pos && pos.coords) || {};
+            if (latitude && longitude) {
+              console.log('Emitiendo PartnerLocationSend (watch)', latitude, longitude);
+              sock.emit('PartnerLocationSend', {
+                partnerId: userToken,
+                lat: latitude,
+                lng: longitude,
+                ts: Date.now(),
+              });
+            }
+          }
+        );
+      } catch (e) {
+        // intentionally no-op: flujo simple
+      }
+    }
+
+    startWatch();
+
+    return () => {
+      isMounted = false;
+      if (locationWatchRef.current) {
+        locationWatchRef.current.remove();
+        locationWatchRef.current = null;
+      }
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;
+      }
+    };
+  }, [isEnabled]);
+
   async function registerForPushNotificationsAsync() {
     let token;
 
